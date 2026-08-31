@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Private Invoices</title>
+<style>
+  :root { --bg:#0d0f14; --card:#161923; --line:#272c3a; --text:#e9ebf1; --dim:#8d95a9; --accent:#8f7bff; --ok:#3ecf8e; --err:#ff6b6b; }
+  * { box-sizing:border-box }
+  body { margin:0; font:15px/1.5 -apple-system,system-ui,sans-serif; background:var(--bg); color:var(--text); display:flex; justify-content:center; padding:40px 16px }
+  main { width:100%; max-width:680px }
+  h1 { font-size:22px; margin:0 } .sub { color:var(--dim); margin:4px 0 20px }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px; margin-bottom:14px }
+  h3 { margin:0 0 10px; font-size:14px }
+  label { display:block; font-size:12px; color:var(--dim); margin:10px 0 4px }
+  input, select { width:100%; padding:9px 11px; border-radius:8px; border:1px solid var(--line); background:var(--bg); color:var(--text); font-size:14px }
+  button { margin-top:12px; padding:10px 16px; border:none; border-radius:8px; background:var(--accent); color:#fff; font-weight:600; cursor:pointer; font-size:14px }
+  button:disabled { opacity:.5 }
+  pre { font:12px ui-monospace,monospace; white-space:pre-wrap; word-break:break-all; color:var(--dim); background:var(--bg); border-radius:8px; padding:10px; max-height:220px; overflow-y:auto }
+  .addr { font-size:11px; color:var(--dim); word-break:break-all }
+  .ok { color:var(--ok) } .err { color:var(--err) }
+</style>
+</head>
+<body>
+<main>
+  <div style="background:#3b2f13;border:1px solid #8a6d1f;color:#ffd86b;border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:13px">
+    <strong>Demo mode</strong> — this hosted copy simulates the actions using the real deployment's
+    data (the live server signs with wallet keys, so it is self-hosted only).
+    <a href="https://github.com/CjDabrow/midnight-private-invoices" style="color:#ffd86b">Run it locally →</a>
+  </div>
+  <h1>Private Invoices</h1>
+  <p class="sub">Invoices whose amount and counterparty stay private — settlement is public, payment is USDM. Built on Midnight.</p>
+
+  <div class="card"><h3>Deployed contract (Midnight Preview)</h3><div class="addr" id="contract">loading…</div></div>
+
+  <div class="card">
+    <h3>1 · Create invoice <span style="color:var(--dim);font-weight:400">(merchant)</span></h3>
+    <label>Amount (USDM)</label><input id="c-amount" placeholder="2">
+    <label>Payer's Midnight address</label><input id="c-payer" placeholder="mn_addr_preview1…">
+    <button onclick="act({action:'create', amount:v('c-amount'), payer:v('c-payer')})">Create on-chain</button>
+  </div>
+
+  <div class="card">
+    <h3>2 · Pay <span style="color:var(--dim);font-weight:400">(payer, USDM on Midnight)</span></h3>
+    <label>Invoice</label><select id="p-file"></select>
+    <label>Merchant's Midnight address</label><input id="p-merchant" placeholder="mn_addr_preview1…">
+    <button onclick="act({action:'pay', file:v('p-file'), merchant:v('p-merchant')})">Pay USDM</button>
+  </div>
+
+  <div class="card">
+    <h3>3 · Settle <span style="color:var(--dim);font-weight:400">(zero-knowledge proof)</span></h3>
+    <label>Invoice</label><select id="s-file"></select>
+    <button onclick="act({action:'settle', file:v('s-file')})">Prove &amp; settle</button>
+  </div>
+
+  <div class="card">
+    <h3>Public state <button style="margin:0;padding:4px 10px;font-weight:400" onclick="act({action:'status'})">refresh</button></h3>
+    <pre id="log">Actions run server-side (the wallet and proof server live there). Each ZK action takes a few minutes.</pre>
+  </div>
+</main>
+<script>
+  // Demo-mode fetch shim: replays the real on-chain run (deploy, create, pay,
+  // settle — all real transaction ids from Midnight Preview) without a signing server.
+  const REAL = {
+    contract: '3340415ce4cb387a51cec39897d9f0dc5152b843ca3a41eb16b5960ea549458c',
+    createTx: '00d564cffecaa61bd420e77325358026640b02994fdaf23ee91bd9295df6ba87af',
+    payTx: '00119d79cda2deaa5975a0a919ec11e34b7ff2d58249742f0b517e92cd78ccb791',
+    settleTx: '005c6d98c6e15858abe82bd395e617a91daa68eb278a16b43976e2a525fc5f4031',
+    commitment: 'b2e515fb02c613053ee79a20aba7f35d91eb374e93ed625d452cc3473868bb9d',
+  }
+  const demoJobs = {}
+  let demoN = 1
+  const outFor = (b) => b.action === 'create'
+    ? `Invoice written to invoice-${REAL.commitment.slice(0,8)}.json — share it with the payer OFF-chain.\nOn-chain commitment: ${REAL.commitment}\ncreateInvoice tx: ${REAL.createTx}`
+    : b.action === 'pay' ? `Paid 2 USDM\nPayment tx: ${REAL.payTx}`
+    : b.action === 'settle' ? `settleInvoice tx: ${REAL.settleTx}\nInvoice settled — the chain saw only the commitment, never the details.`
+    : `contract: ${REAL.contract}\ninvoices created: 1\ninvoices settled: 1\n ${REAL.commitment} settled=true`
+  window.fetch = (url, opts) => {
+    const path = String(url).split('?')[0]
+    let body
+    if (path === '/api/deployment') body = { contractAddress: REAL.contract }
+    else if (path === '/api/invoices') body = [{ file: `invoice-${REAL.commitment.slice(0,8)}.json`, amount: '2' }]
+    else if (path === '/api/action') {
+      const req = JSON.parse(opts.body)
+      const id = String(demoN++)
+      demoJobs[id] = { cmd: req.action + ' (demo)', status: 'running', output: 'proving… (simulated)' }
+      setTimeout(() => { demoJobs[id].status = 'done'; demoJobs[id].output = outFor(req) }, 3000)
+      body = { jobId: id }
+    } else if (path.startsWith('/api/job/')) body = demoJobs[path.split('/').pop()]
+    else return Promise.reject(new Error('demo: no route ' + path))
+    return new Promise((res) => setTimeout(() => res({ ok: true, json: async () => body }), 300))
+  }
+
+  const $ = (id) => document.getElementById(id)
+  const v = (id) => $(id).value.trim()
+  const log = (t, cls) => { $('log').innerHTML = cls ? `<span class="${cls}">${t}</span>` : t }
+
+  fetch('/api/deployment').then((r) => r.json()).then((d) => ($('contract').textContent = d.contractAddress)).catch(() => ($('contract').textContent = 'not deployed yet'))
+
+  async function loadInvoices() {
+    const list = await (await fetch('/api/invoices')).json()
+    for (const sel of ['p-file', 's-file']) {
+      $(sel).innerHTML = list.map((i) => `<option value="${i.file}">${i.file} — ${i.amount} USDM</option>`).join('') || '<option value="">none yet</option>'
+    }
+  }
+  loadInvoices()
+
+  async function act(body) {
+    log(`Running ${body.action}… (ZK actions take a few minutes — leave this open)`)
+    const { jobId } = await (await fetch('/api/action', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })).json()
+    const timer = setInterval(async () => {
+      const job = await (await fetch('/api/job/' + jobId)).json()
+      log(`[${job.status}] ${job.cmd}\n\n${job.output}`, job.status === 'failed' ? 'err' : job.status === 'done' ? 'ok' : undefined)
+      if (job.status !== 'running') { clearInterval(timer); loadInvoices() }
+    }, 2000)
+  }
+</script>
+</body>
+</html>
