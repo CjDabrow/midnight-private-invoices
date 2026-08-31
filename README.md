@@ -27,6 +27,9 @@ who paid.
     demonstrates knowledge without disclosure, then marks the invoice settled
   - `commitmentOf(...)` — a pure circuit shared by the CLI so off-chain and
     in-circuit commitments always agree
+- **Web UI** ([src/server.mjs](src/server.mjs) + [web/index.html](web/index.html)) —
+  `node src/server.mjs` then open http://localhost:4498: create, pay, and ZK-settle
+  invoices from the browser (actions sign server-side; the page polls job progress)
 - **CLI** ([src/cli.mjs](src/cli.mjs)) — `create`, `pay`, `settle`, `status`
 - **Wiring** ([src/lib.mjs](src/lib.mjs)) — headless wallet, providers, witnesses
 
@@ -60,6 +63,8 @@ node src/cli.mjs create 5 mn_addr_preview1...payer     # merchant
 node src/cli.mjs pay invoice-XXXX.json mn_addr_...     # payer sends USDM
 node src/cli.mjs settle invoice-XXXX.json              # ZK settlement
 node src/cli.mjs status                                # public state
+
+node src/server.mjs                                    # or use the web UI
 ```
 
 ## On-chain proof (Preview)

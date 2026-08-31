@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Private Invoices</title>
+<style>
+  :root { --bg:#0d0f14; --card:#161923; --line:#272c3a; --text:#e9ebf1; --dim:#8d95a9; --accent:#8f7bff; --ok:#3ecf8e; --err:#ff6b6b; }
+  * { box-sizing:border-box }
+  body { margin:0; font:15px/1.5 -apple-system,system-ui,sans-serif; background:var(--bg); color:var(--text); display:flex; justify-content:center; padding:40px 16px }
+  main { width:100%; max-width:680px }
+  h1 { font-size:22px; margin:0 } .sub { color:var(--dim); margin:4px 0 20px }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:18px; margin-bottom:14px }
+  h3 { margin:0 0 10px; font-size:14px }
+  label { display:block; font-size:12px; color:var(--dim); margin:10px 0 4px }
+  input, select { width:100%; padding:9px 11px; border-radius:8px; border:1px solid var(--line); background:var(--bg); color:var(--text); font-size:14px }
+  button { margin-top:12px; padding:10px 16px; border:none; border-radius:8px; background:var(--accent); color:#fff; font-weight:600; cursor:pointer; font-size:14px }
+  button:disabled { opacity:.5 }
+  pre { font:12px ui-monospace,monospace; white-space:pre-wrap; word-break:break-all; color:var(--dim); background:var(--bg); border-radius:8px; padding:10px; max-height:220px; overflow-y:auto }
+  .addr { font-size:11px; color:var(--dim); word-break:break-all }
+  .ok { color:var(--ok) } .err { color:var(--err) }
+</style>
+</head>
+<body>
+<main>
+  <h1>Private Invoices</h1>
+  <p class="sub">Invoices whose amount and counterparty stay private — settlement is public, payment is USDM. Built on Midnight.</p>
+
+  <div class="card"><h3>Deployed contract (Midnight Preview)</h3><div class="addr" id="contract">loading…</div></div>
+
+  <div class="card">
+    <h3>1 · Create invoice <span style="color:var(--dim);font-weight:400">(merchant)</span></h3>
+    <label>Amount (USDM)</label><input id="c-amount" placeholder="2">
+    <label>Payer's Midnight address</label><input id="c-payer" placeholder="mn_addr_preview1…">
+    <button onclick="act({action:'create', amount:v('c-amount'), payer:v('c-payer')})">Create on-chain</button>
+  </div>
+
+  <div class="card">
+    <h3>2 · Pay <span style="color:var(--dim);font-weight:400">(payer, USDM on Midnight)</span></h3>
+    <label>Invoice</label><select id="p-file"></select>
+    <label>Merchant's Midnight address</label><input id="p-merchant" placeholder="mn_addr_preview1…">
+    <button onclick="act({action:'pay', file:v('p-file'), merchant:v('p-merchant')})">Pay USDM</button>
+  </div>
+
+  <div class="card">
+    <h3>3 · Settle <span style="color:var(--dim);font-weight:400">(zero-knowledge proof)</span></h3>
+    <label>Invoice</label><select id="s-file"></select>
+    <button onclick="act({action:'settle', file:v('s-file')})">Prove &amp; settle</button>
+  </div>
+
+  <div class="card">
+    <h3>Public state <button style="margin:0;padding:4px 10px;font-weight:400" onclick="act({action:'status'})">refresh</button></h3>
+    <pre id="log">Actions run server-side (the wallet and proof server live there). Each ZK action takes a few minutes.</pre>
+  </div>
+</main>
+<script>
+  const $ = (id) => document.getElementById(id)
+  const v = (id) => $(id).value.trim()
+  const log = (t, cls) => { $('log').innerHTML = cls ? `<span class="${cls}">${t}</span>` : t }
+
+  fetch('/api/deployment').then((r) => r.json()).then((d) => ($('contract').textContent = d.contractAddress)).catch(() => ($('contract').textContent = 'not deployed yet'))
+
+  async function loadInvoices() {
+    const list = await (await fetch('/api/invoices')).json()
+    for (const sel of ['p-file', 's-file']) {
+      $(sel).innerHTML = list.map((i) => `<option value="${i.file}">${i.file} — ${i.amount} USDM</option>`).join('') || '<option value="">none yet</option>'
+    }
+  }
+  loadInvoices()
+
+  async function act(body) {
+    log(`Running ${body.action}… (ZK actions take a few minutes — leave this open)`)
+    const { jobId } = await (await fetch('/api/action', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })).json()
+    const timer = setInterval(async () => {
+      const job = await (await fetch('/api/job/' + jobId)).json()
+      log(`[${job.status}] ${job.cmd}\n\n${job.output}`, job.status === 'failed' ? 'err' : job.status === 'done' ? 'ok' : undefined)
+      if (job.status !== 'running') { clearInterval(timer); loadInvoices() }
+    }, 2000)
+  }
+</script>
+</body>
+</html>
