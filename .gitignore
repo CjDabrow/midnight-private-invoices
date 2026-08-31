@@ -1,0 +1,6 @@
+.env
+node_modules/
+wallet-state*.json
+invoice-*.json
+deployment.json
+*.log

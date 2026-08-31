@@ -1,0 +1,54 @@
+// Private Invoices — settle USDM invoices publicly while the amount and
+// counterparty stay private.
+//
+// An invoice lives on-chain only as a commitment:
+//   commitment = H("private-invoice:v1:", amount, payer, salt)
+// The merchant registers the commitment. After being paid (USDM at the
+// application layer), whoever knows the invoice details — merchant or payer —
+// proves knowledge of the preimage in zero knowledge to mark it settled.
+// The chain learns *that* the invoice settled, never the amount or payer.
+
+pragma language_version >= 0.16;
+
+import CompactStandardLibrary;
+
+// commitment -> settled?
+export ledger invoices: Map<Bytes<32>, Boolean>;
+export ledger createdCount: Counter;
+export ledger settledCount: Counter;
+
+// Private invoice details, supplied locally by the prover and never posted.
+witness invoiceAmount(): Uint<64>;
+witness invoicePayer(): Bytes<32>;
+witness invoiceSalt(): Bytes<32>;
+
+// Register an invoice by its commitment. The commitment reveals nothing.
+export circuit createInvoice(commitment: Bytes<32>): [] {
+  const c = disclose(commitment);
+  assert(!invoices.member(c), "invoice already exists");
+  invoices.insert(c, false);
+  createdCount.increment(1);
+}
+
+// Mark an invoice settled. The prover must know (amount, payer, salt) matching
+// the public commitment — proven in zero knowledge, nothing disclosed.
+export circuit settleInvoice(commitment: Bytes<32>): [] {
+  // `commitment` is a public parameter, but comparing it against witness data
+  // below taints it for the disclosure checker — declare the disclosure once.
+  const c = disclose(commitment);
+  assert(invoices.member(c), "unknown invoice");
+  assert(!invoices.lookup(c), "invoice already settled");
+  const amount = invoiceAmount();
+  const payer = invoicePayer();
+  const salt = invoiceSalt();
+  assert(c == commitmentOf(amount, payer, salt), "invoice details do not match commitment");
+  invoices.insert(c, true);
+  settledCount.increment(1);
+}
+
+// Deterministic commitment over the private invoice details.
+export circuit commitmentOf(amount: Uint<64>, payer: Bytes<32>, salt: Bytes<32>): Bytes<32> {
+  return persistentHash<Vector<4, Bytes<32>>>(
+    [pad(32, "private-invoice:v1:"), amount as Field as Bytes<32>, payer, salt]
+  );
+}

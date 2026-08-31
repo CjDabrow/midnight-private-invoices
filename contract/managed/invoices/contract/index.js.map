@@ -1,0 +1,8 @@
+{
+  "version": 3,
+  "file": "index.js",
+  "sourceRoot": "../../../../",
+  "sources": ["contract/src/invoices.compact", "compiler/standard-library.compact"],
+  "names": [],
+  "mappings": ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;EAUA;;;;;;;;;;;;;;;;;;;MAeA,AAAA,aAKC;;;;;cAL4B,YAAqB;;;;;;;;;;;;;;;;;;yCAArB,YAAqB;;;;;;;;;+CAArB,YAAqB;;;OAKjD;MAID,AAAA,aAYC;;;;;cAZ4B,YAAqB;;;;;;;;;;;;;;;;;;yCAArB,YAAqB;;;;;;;;;+CAArB,YAAqB;;;OAYjD;MAGD,AAAA,YAIC;;OAAA;;;;;;;;;;GACA;EA5CD;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;IAKA;;;;;;;;;;yEAAgD;IAChD;;;;;;;;;yEAAoC;IACpC;;;;;;;;;yEAAoC;;;;;;;GAqCnC;ECtDD,AAAA,kBAAA;oEAAA;;;EDoBA,AAAA,gBAAkC;;0DAAlC,aAAkC;;;;;;;;;;;;;;GAAA;EAClC,AAAA,eAAkC;;0DAAlC,YAAkC;;;;;;;;;;;;;;GAAA;EAClC,AAAA,cAAiC;;0DAAjC,WAAiC;;;;;;;;;;;;;;GAAA;EAGjC,AAAA,gBAKC,4BAL4B,YAAqB;UAC1C,GAAwB,GAAX,YAAU;qDACrB;;;;;;;;;;;4KAAgB,GAAC;;;;0HAAT;;IAChB;;;;;;;;;;2HAAgB,GAAC;;;;;;wEAAT;UACR,KAAY;IAAZ;;;;;;;;;;6FAAA,KAAY;;;;wEAAA;;GACb;EAID,AAAA,gBAYC,4BAZ4B,YAAqB;UAG1C,GAAwB,GAAX,YAAU;oDACtB;;;;;;;;;;;2KAAgB,GAAC;;;;yHAAT;;qDACP;;;;;;;;;;;;;;gJAAgB,GAAC;;;0HAAT;;UACV,QAAwB;UACxB,OAAsB;UACtB,MAAoB;0CACnB,GAAC;+DAAiB,QAAM;+DAAE,OAAK;+DAAE,MAAI;;IAC5C;;;;;;;;;;2HAAgB,GAAC;;;;;;wEAAT;UACR,KAAY;IAAZ;;;;;;;;;;6FAAA,KAAY;;;;wEAAA;;GACb;EAGD,AAAA,eAIC,CAJ2B,QAAgB,EAAE,OAAgB,EAAE,MAAe;;;wEAE1C,QAAM;;mCAAwB,OAAK;mCAAE,MAAI;GAE7E;;;;;;;;;;;;;;;;;;;;IAtCD;;;;;uCAAA;;;;;;;;;;;;;;;;4GAAgD;;;;;;uCAAhD;;;;;;;;;;;;4GAAgD;;;;;;;;;;;;;;uCAAhD;;;;;;;;;;;;;;;4GAAgD;;;;;;;;;;;;;;uCAAhD;;;;;;;;;;;;;;;;;4GAAgD;;;;;;;;;KAAA;IAChD;qCAAA;;;;;;;;;;;0GAAoC;KAAA;IACpC;qCAAA;;;;;;;;;;;0GAAoC;KAAA;;;;;;;;;;;;EAgCpC,AAAA,YAIC;;;;UAJ2B,QAAgB;UAAE,OAAgB;UAAE,MAAe;;;;;;;;;;;;;;;;;;;;;;0CAAnD,QAAgB,EAAE,OAAgB,EAAE,MAAe;GAI9E;;;;"
+}

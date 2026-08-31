@@ -1,0 +1,25 @@
+{
+  "name": "midnight-private-invoices",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Private invoices on Midnight: amounts and counterparties stay private, settlement is public. USDM as the payment asset.",
+  "license": "MIT",
+  "scripts": {
+    "compile": "compact compile +0.30.0 contract/src/invoices.compact contract/managed/invoices",
+    "deploy": "node src/deploy.mjs",
+    "cli": "node src/cli.mjs"
+  },
+  "dependencies": {
+    "@midnight-ntwrk/compact-js": "2.5.0",
+    "@midnight-ntwrk/midnight-js-contracts": "4.0.4",
+    "@midnight-ntwrk/midnight-js-types": "4.0.4",
+    "@midnight-ntwrk/wallet-sdk-address-format": "3.1.0",
+    "@via-labs-tech/usdm-bridge": "1.1.0",
+    "dotenv": "^17.4.2",
+    "rxjs": "^7.8.2",
+    "viem": "^2.38.5"
+  },
+  "overrides": {
+    "@midnight-ntwrk/ledger-v8": "8.0.3"
+  }
+}
