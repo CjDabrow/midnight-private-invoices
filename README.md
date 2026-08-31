@@ -11,6 +11,9 @@ that they know the invoice details behind the commitment, flipping it to
 `settled`. The chain learns **that** an invoice settled — never the amount, never
 who paid.
 
+**Live demo**: https://cjdabrow.github.io/midnight-private-invoices/ — the UI in demo
+mode, replaying the real on-chain run (self-host for live signing).
+
 ## Deployed contract (Midnight Preview)
 
 ```
