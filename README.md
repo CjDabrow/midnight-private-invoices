@@ -1,5 +1,7 @@
 # Private Invoices on Midnight
 
+> This project is built on the Midnight Network.
+
 **Built on [Midnight](https://midnight.network)** — a payments DApp where the
 **amount and counterparty of an invoice stay private, while settlement is public**,
 with **USDM as the payment asset**.
