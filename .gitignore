@@ -4,3 +4,5 @@ wallet-state*.json
 invoice-*.json
 deployment.json
 *.log
+midnight-db/
+*-state.json
